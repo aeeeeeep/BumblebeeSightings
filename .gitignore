@@ -1,0 +1,11 @@
+checkpoint/
+*.pth
+*.bin
+data/
+data.tar.gz
+data_aug/
+data_aug.tar.gz
+__pycache__/
+__pycache__/
+*.un~
+.idea/
