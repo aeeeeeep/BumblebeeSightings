@@ -17,7 +17,7 @@ import torch.optim as optim
 from collections import OrderedDict
 from torch.autograd import Variable
 from torchsampler import ImbalancedDatasetSampler
-from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score, mean_squared_error, mean_absolute_error, accuracy_score, roc_curve
+from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score, mean_squared_error, mean_absolute_error, accuracy_score
 from torchvision import datasets, transforms, models
 import wandb
 import warnings
@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore")
 if WANDB:
     wandb.init(
             project="MultimodalCommentAnalysis",
-            name="resnet18",
+            name="lenet",
             )
     
 
@@ -94,13 +94,15 @@ transform_train = transforms.Compose(
     [transforms.ToTensor(),
      transforms.RandomAffine(degrees=(10, 150), translate=(0.2, 0.5), shear=45),
      transforms.RandomHorizontalFlip(),
-     transforms.Resize([224, 224]),
+     transforms.Resize([64, 64]),
+     # transforms.Resize([224, 224]),
      transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
      ])
 
 transform_val = transforms.Compose(
     [transforms.ToTensor(),
-     transforms.Resize([224, 224]),
+     transforms.Resize([64, 64]),
+     # transforms.Resize([224, 224]),
      transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
      ])
 
@@ -134,21 +136,27 @@ ins=parser.parse_args(args=[])
 
 class Model(nn.Module):
     def __init__(self):
-        super().__init__()
-        self.backbone = tv.models.resnet18(weights=tv.models.ResNet18_Weights.DEFAULT)
-        # self.backbone = tv.models.resnet18()
-        self.fc1 = nn.Linear(1000, ins.hiddenunits)
-        self.fc2 = nn.Linear(ins.hiddenunits, 2)
-        self.out = nn.Softmax(dim=1)
-
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(3, 16, (5,5), padding=2)
+        self.conv2 = nn.Conv2d(16, 64, (5,5))
+        self.fc1   = nn.Linear(12544, 256)
+        self.fc2   = nn.Linear(256, 128)
+        self.fc3   = nn.Linear(128, 2)
     def forward(self, x):
-        x = self.backbone(x)
-        x = self.fc1(x)
-        x = self.fc2(x)
-        x = self.out(x)
+        x = F.max_pool2d(F.relu(self.conv1(x)), (2,2))
+        x = F.max_pool2d(F.relu(self.conv2(x)), (2,2))
+        x = x.view(-1, self.num_flat_features(x))
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
         return x
+    def num_flat_features(self, x):
+        size = x.size()[1:]
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features
 
-        
 model = Model()
 print("Model:\n", model)
 

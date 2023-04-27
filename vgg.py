@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore")
 if WANDB:
     wandb.init(
             project="MultimodalCommentAnalysis",
-            name="resnet18",
+            name="vgg16",
             )
     
 
@@ -135,7 +135,7 @@ ins=parser.parse_args(args=[])
 class Model(nn.Module):
     def __init__(self):
         super().__init__()
-        self.backbone = tv.models.resnet18(weights=tv.models.ResNet18_Weights.DEFAULT)
+        self.backbone = tv.models.vgg16(weights=tv.models.VGG16_Weights.DEFAULT)
         # self.backbone = tv.models.resnet18()
         self.fc1 = nn.Linear(1000, ins.hiddenunits)
         self.fc2 = nn.Linear(ins.hiddenunits, 2)

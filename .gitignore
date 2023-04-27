@@ -2,9 +2,12 @@ checkpoint/
 *.pth
 *.bin
 data/
+predict_img/
 data.tar.gz
 data_aug/
 data_aug.tar.gz
+data_train/
+data_val/
 __pycache__/
 __pycache__/
 *.un~

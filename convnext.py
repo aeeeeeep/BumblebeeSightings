@@ -1,4 +1,4 @@
-WANDB=True
+WANDB=False
 import os
 import gc
 import torch
@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore")
 if WANDB:
     wandb.init(
             project="MultimodalCommentAnalysis",
-            name="resnet18",
+            name="convnext_tiny",
             )
     
 
@@ -135,8 +135,7 @@ ins=parser.parse_args(args=[])
 class Model(nn.Module):
     def __init__(self):
         super().__init__()
-        self.backbone = tv.models.resnet18(weights=tv.models.ResNet18_Weights.DEFAULT)
-        # self.backbone = tv.models.resnet18()
+        self.backbone = tv.models.convnext_tiny(weights=tv.models.ConvNeXt_Tiny_Weights.DEFAULT)
         self.fc1 = nn.Linear(1000, ins.hiddenunits)
         self.fc2 = nn.Linear(ins.hiddenunits, 2)
         self.out = nn.Softmax(dim=1)

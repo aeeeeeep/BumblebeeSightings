@@ -1,4 +1,5 @@
 import imghdr
+import math
 import os
 from warnings import simplefilter
 
@@ -7,8 +8,6 @@ import pandas as pd
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from tqdm import tqdm
-
-from cnn import args
 
 simplefilter(action='ignore', category=FutureWarning)
 
@@ -31,8 +30,6 @@ def data_split(full_list, ratio, shuffle=True):
     n_negative = int(len(negative) * ratio)
     if n_total == 0 or n_positive < 1 or n_negative < 1:
         return [], full_list
-    if args.full_list:
-        sublist_1 = full_list
     else:
         sublist_1_1 = positive.iloc[:n_positive, :]
         sublist_1_2 = negative.iloc[:n_negative, :]
@@ -75,3 +72,44 @@ def process_notes(notes):
     stop_words = stopwords.words('english')
     notes_processed = [[word.lower() for word in tokenizer.tokenize(x) if word not in stop_words] for x in notes]
     return notes_processed
+
+def cal_weight(x):
+    '''熵值法计算变量的权重'''
+    # 标准化
+    # x = x.apply(lambda x: ((x - np.min(x)) / (np.max(x) - np.min(x))))
+
+    # 求k
+    rows = x.index.size  # 行
+    cols = x.columns.size  # 列
+    k = 1.0 / math.log(rows)
+
+    lnf = [[None] * cols for i in range(rows)]
+
+    # 矩阵计算--
+    # 信息熵
+    # p=array(p)
+    x = np.array(x)
+    lnf = [[None] * cols for i in range(rows)]
+    lnf = np.array(lnf)
+    for i in range(0, rows):
+        for j in range(0, cols):
+            if x[i][j] == 0:
+                lnfij = 0.0
+            else:
+                p = x[i][j] / x.sum(axis=0)[j]
+                lnfij = math.log(p) * p * (-k)
+            lnf[i][j] = lnfij
+    lnf = pd.DataFrame(lnf)
+    E = lnf
+
+    # 计算冗余度
+    d = 1 - E.sum(axis=0)
+    # 计算各指标的权重
+    w = [[None] * 1 for i in range(cols)]
+    for j in range(0, cols):
+        wj = d[j] / sum(d)
+        w[j] = wj
+        # 计算各样本的综合得分,用最原始的数据
+
+    w = pd.DataFrame(w)
+    return w
